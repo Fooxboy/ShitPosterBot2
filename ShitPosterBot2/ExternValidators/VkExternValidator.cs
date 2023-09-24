@@ -16,6 +16,6 @@ public class VkExternValidator : IExternPostValidator
 
     public async Task<bool> IsValid(Post post)
     {
-        return !await _botContext.Posts.AnyAsync(x => x.PlatformOwner == post.PlatformOwner && x.PlatformId == post.PlatformId);
+        return !await _botContext.Posts.AnyAsync(x => x.PlatformId == post.PlatformId);
     }
 }

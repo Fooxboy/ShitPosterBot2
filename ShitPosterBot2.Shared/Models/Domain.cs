@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ShitPosterBot2.Database;
+namespace ShitPosterBot2.Shared.Models;
 
 public class Domain
 {
@@ -14,4 +14,7 @@ public class Domain
     public bool ShowOriginalText { get; set; }
     
     public string? Target { get; set; }
+    
+    
+    public List<Post> Posts { get; set; }
 }

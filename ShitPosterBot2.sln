@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShitPosterBot2.Collector", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShitPosterBot2.Shared", "ShitPosterBot2.Shared\ShitPosterBot2.Shared.csproj", "{5FEC8F3A-36BB-4D76-9ADB-720B7C54DF94}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShitPosterBot2.Sender", "ShitPosterBot2.Sender\ShitPosterBot2.Sender.csproj", "{63B64FBE-0CB4-4197-AAD1-1EF2BA9FBEF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{5FEC8F3A-36BB-4D76-9ADB-720B7C54DF94}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FEC8F3A-36BB-4D76-9ADB-720B7C54DF94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FEC8F3A-36BB-4D76-9ADB-720B7C54DF94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63B64FBE-0CB4-4197-AAD1-1EF2BA9FBEF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63B64FBE-0CB4-4197-AAD1-1EF2BA9FBEF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63B64FBE-0CB4-4197-AAD1-1EF2BA9FBEF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63B64FBE-0CB4-4197-AAD1-1EF2BA9FBEF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

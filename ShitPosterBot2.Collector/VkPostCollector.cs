@@ -38,7 +38,7 @@ public class VkPostCollector : IPostCollector
         _logger = logger;
     }
 
-    public event Action<Post>? NewPostParsed;
+    public event Func<Post, Task>? NewPostParsed;
     
     public event Action<Exception, IPostCollector>? PostCollectorCrashed;
 
@@ -101,15 +101,15 @@ public class VkPostCollector : IPostCollector
             //Пока есть хотя бы один паблик в списке ошибок, будем крутить.
             while (domains.Any() && domainTryes < _settings.DomainsTryes)
             {
-                for (var i = 0; i < domains.Count; i++)
-                {
-                    var domain = domains[i];
+                var removedDomains = new List<string>();
 
+                foreach (var domain in domains)
+                {
                     try
                     {
                         await ProcessDomain(domain);
                         
-                        domains.RemoveAt(i);
+                        removedDomains.Add(domain);
 
                     } catch (Exception ex)
                     {
@@ -118,6 +118,13 @@ public class VkPostCollector : IPostCollector
                     }
                 }
 
+                foreach (var removeIndex in removedDomains)
+                {
+                    var index = domains.IndexOf(removeIndex);
+                    
+                    domains.RemoveAt(index);
+                }
+                
                 domainTryes++;
             }
             
@@ -158,7 +165,7 @@ public class VkPostCollector : IPostCollector
 
             post.Body = vkPost.Text;
             post.PlatformOwner = domain;
-            post.PlatformId = vkPost.Id.ToString();
+            post.PlatformId = string.Join("_", vkPost.OwnerId, vkPost.Id);
             post.CollectedAt = DateTime.UtcNow;
             post.Attachments = new List<PostAttachment>();
 
@@ -169,6 +176,13 @@ public class VkPostCollector : IPostCollector
             {
                 _logger.LogInformation("Внешний валидатор сказал что это не валидный пост. Пропускаем");
 
+                return;
+            }
+
+            if (vkPost.Attachments.Count == 0)
+            {
+                _logger.LogInformation("В посте нет вложений, пропускаем");
+                
                 return;
             }
             

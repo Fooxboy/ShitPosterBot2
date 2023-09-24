@@ -16,20 +16,24 @@ builder.Services.AddLogging(loggingBuilder =>
 {
     // configure Logging with NLog
     loggingBuilder.ClearProviders();
-    loggingBuilder.SetMinimumLevel(LogLevel.Trace);
+    loggingBuilder.SetMinimumLevel(LogLevel.Information);
     loggingBuilder.AddNLog();
+    loggingBuilder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
 });
 
 builder.Services.AddDbContext<BotContext>(options =>
     options.UseSqlite(
-        //$"Data Source={ Path.Combine(Environment.CurrentDirectory, "DB", "botdata.db")}"),
-    $"Data Source=C:\\Projects\\ShitPosterBot2\\ShitPosterBot2\\bin\\Debug\\net7.0\\DB\\botdata.db"),
+        $"Data Source={Path.Combine(Environment.CurrentDirectory, "DB", "botdata.db")}"),
+    //$"Data Source=C:\\Projects\\ShitPosterBot2\\ShitPosterBot2\\bin\\Debug\\net7.0\\DB\\botdata.db"),
     ServiceLifetime.Singleton);
 
-builder.Services.AddTransient<TopSecretsRepository>();
-builder.Services.AddTransient<DomainsRepository>();
-builder.Services.AddTransient<IStatisticsService, StatisticsService>();
-builder.Services.AddTransient<IExternPostValidator, VkExternValidator>();
+builder.Services.AddSingleton<TopSecretsRepository>();
+builder.Services.AddSingleton<DomainsRepository>();
+builder.Services.AddSingleton<PostsRepository>();
+
+builder.Services.AddSingleton<IStatisticsService, StatisticsService>();
+builder.Services.AddSingleton<IExternPostValidator, VkExternValidator>();
+builder.Services.AddSingleton<ISplashService, SplashService>();
 
 builder.Services.AddHostedService<BotHost>();
 

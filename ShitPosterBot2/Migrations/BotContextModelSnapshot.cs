@@ -17,31 +17,6 @@ namespace ShitPosterBot2.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.11");
 
-            modelBuilder.Entity("ShitPosterBot2.Database.Domain", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Emoji")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("ShowOriginalText")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Target")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Domains");
-                });
-
             modelBuilder.Entity("ShitPosterBot2.Database.Splash", b =>
                 {
                     b.Property<long>("Id")
@@ -88,6 +63,31 @@ namespace ShitPosterBot2.Migrations
                     b.ToTable("TopSecrets");
                 });
 
+            modelBuilder.Entity("ShitPosterBot2.Shared.Models.Domain", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Emoji")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ShowOriginalText")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Target")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Domains");
+                });
+
             modelBuilder.Entity("ShitPosterBot2.Shared.Models.Post", b =>
                 {
                     b.Property<long>("Id")
@@ -99,6 +99,9 @@ namespace ShitPosterBot2.Migrations
 
                     b.Property<DateTime?>("CollectedAt")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("DomainInfoId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("PlatformId")
                         .IsRequired()
@@ -112,6 +115,8 @@ namespace ShitPosterBot2.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DomainInfoId");
 
                     b.ToTable("Posts");
                 });
@@ -138,6 +143,17 @@ namespace ShitPosterBot2.Migrations
                     b.ToTable("Attachments");
                 });
 
+            modelBuilder.Entity("ShitPosterBot2.Shared.Models.Post", b =>
+                {
+                    b.HasOne("ShitPosterBot2.Shared.Models.Domain", "DomainInfo")
+                        .WithMany("Posts")
+                        .HasForeignKey("DomainInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DomainInfo");
+                });
+
             modelBuilder.Entity("ShitPosterBot2.Shared.Models.PostAttachment", b =>
                 {
                     b.HasOne("ShitPosterBot2.Shared.Models.Post", "Post")
@@ -147,6 +163,11 @@ namespace ShitPosterBot2.Migrations
                         .IsRequired();
 
                     b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("ShitPosterBot2.Shared.Models.Domain", b =>
+                {
+                    b.Navigation("Posts");
                 });
 
             modelBuilder.Entity("ShitPosterBot2.Shared.Models.Post", b =>

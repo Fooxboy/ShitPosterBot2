@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShitPosterBot2.Shared.Models;
 
@@ -17,5 +18,10 @@ public class Post
     
     public string? Body { get; set; }
     
+    public Domain DomainInfo { get; set; }
+    
     public List<PostAttachment> Attachments { get; set; }
+    
+    [NotMapped]
+    public int Tryes { get; set; }
 }

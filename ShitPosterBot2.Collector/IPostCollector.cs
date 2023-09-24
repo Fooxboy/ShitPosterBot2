@@ -5,7 +5,7 @@ namespace ShitPosterBot2.Collector;
 public interface IPostCollector
 {
     public string Name { get; }
-    public event Action<Post> NewPostParsed;    
+    public event Func<Post, Task> NewPostParsed;    
     
     public event Action<Exception, IPostCollector> PostCollectorCrashed;
 

@@ -35,6 +35,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ShitPosterBot2.Collector\ShitPosterBot2.Collector.csproj" />
+      <ProjectReference Include="..\ShitPosterBot2.Sender\ShitPosterBot2.Sender.csproj" />
       <ProjectReference Include="..\ShitPosterBot2.Shared\ShitPosterBot2.Shared.csproj" />
     </ItemGroup>
 

@@ -28,23 +28,6 @@ namespace ShitPosterBot2.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Posts",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    PlatformId = table.Column<string>(type: "TEXT", nullable: false),
-                    PlatformOwner = table.Column<string>(type: "TEXT", nullable: false),
-                    CollectedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    PublishAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    Body = table.Column<string>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Posts", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Splashes",
                 columns: table => new
                 {
@@ -84,6 +67,30 @@ namespace ShitPosterBot2.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Posts",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    PlatformId = table.Column<string>(type: "TEXT", nullable: false),
+                    PlatformOwner = table.Column<string>(type: "TEXT", nullable: false),
+                    CollectedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    PublishAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    Body = table.Column<string>(type: "TEXT", nullable: true),
+                    DomainInfoId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Posts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Posts_Domains_DomainInfoId",
+                        column: x => x.DomainInfoId,
+                        principalTable: "Domains",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Attachments",
                 columns: table => new
                 {
@@ -108,6 +115,11 @@ namespace ShitPosterBot2.Migrations
                 name: "IX_Attachments_PostId",
                 table: "Attachments",
                 column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Posts_DomainInfoId",
+                table: "Posts",
+                column: "DomainInfoId");
         }
 
         /// <inheritdoc />
@@ -115,9 +127,6 @@ namespace ShitPosterBot2.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Attachments");
-
-            migrationBuilder.DropTable(
-                name: "Domains");
 
             migrationBuilder.DropTable(
                 name: "Splashes");
@@ -130,6 +139,9 @@ namespace ShitPosterBot2.Migrations
 
             migrationBuilder.DropTable(
                 name: "Posts");
+
+            migrationBuilder.DropTable(
+                name: "Domains");
         }
     }
 }
