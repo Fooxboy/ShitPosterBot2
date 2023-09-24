@@ -1,16 +1,22 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShitPosterBot2.Database;
+using ShitPosterBot2.Shared;
 using ShitPosterBot2.Shared.Models;
 
 namespace ShitPosterBot2.Repositories;
 
-public class PostsRepository
+public class PostsRepository : IPostRepository
 {
     private readonly BotContext _botContext;
 
     public PostsRepository(BotContext botContext)
     {
         _botContext = botContext;
+    }
+
+    public Task<Post?> FindPostById(long id)
+    {
+        return null;
     }
 
     public async Task<Post?> AddPostAsync(Post post)
