@@ -21,6 +21,8 @@ public class VkPostCollector : IPostCollector
 
     private readonly IStatisticsService _statisticsService;
 
+    private readonly IExternPostValidator _externPostValidator;
+
     private  PostManager _vkPostManager;
 
     private List<IAttachmentValidator> _attachmentValidators;
@@ -28,16 +30,17 @@ public class VkPostCollector : IPostCollector
 
     private bool _isRun;
     
-    public VkPostCollector(ILogger<VkPostCollector> logger, IStatisticsService statisticsService, int instance = 1)
+    public VkPostCollector(ILogger<VkPostCollector> logger, IStatisticsService statisticsService, IExternPostValidator externPostValidator, int instance = 1)
     {
         _statisticsService = statisticsService;
+        _externPostValidator = externPostValidator;
         _instance = instance;
         _logger = logger;
     }
 
     public event Action<Post>? NewPostParsed;
     
-    public event Action<Exception>? PostCollectorCrashed;
+    public event Action<Exception, IPostCollector>? PostCollectorCrashed;
 
     public async Task RunCollectorAsync(ICollectorSettings settings)
     {
@@ -50,7 +53,7 @@ public class VkPostCollector : IPostCollector
             var settingsErrorMessage = $"Невозможно запустить сбощик постов с именем '{GetName()}'," +
                                        $" потому что переданы не верные настройки";
             
-            PostCollectorCrashed?.Invoke(new Exception(settingsErrorMessage));
+            PostCollectorCrashed?.Invoke(new Exception(settingsErrorMessage), this);
 
             return;
         }
@@ -77,7 +80,7 @@ public class VkPostCollector : IPostCollector
         }
         catch (Exception ex)
         {
-            PostCollectorCrashed?.Invoke(ex);
+            PostCollectorCrashed?.Invoke(ex, this);
         }
     }
 
@@ -118,6 +121,7 @@ public class VkPostCollector : IPostCollector
                 domainTryes++;
             }
             
+            _logger.LogInformation("Ждем таймаут повторного сбора данных");
             Thread.Sleep(_settings.TimeoutCollect);
         }
     }
@@ -148,6 +152,26 @@ public class VkPostCollector : IPostCollector
 
         try
         {
+            _logger.LogInformation($"Начало обработки поста {vkPost.Id} из паблика {domain}");
+
+            var post = new Post();
+
+            post.Body = vkPost.Text;
+            post.PlatformOwner = domain;
+            post.PlatformId = vkPost.Id.ToString();
+            post.CollectedAt = DateTime.UtcNow;
+            post.Attachments = new List<PostAttachment>();
+
+
+            var isValidPost = await _externPostValidator.IsValid(post);
+            
+            if (!isValidPost)
+            {
+                _logger.LogInformation("Внешний валидатор сказал что это не валидный пост. Пропускаем");
+
+                return;
+            }
+            
             var hasCopyright = await _vkPostManager.CheckCopyright($"{vkPost.OwnerId}_{vkPost.Id}");
 
             if (hasCopyright || vkPost.MarkedAsAds)
@@ -159,17 +183,7 @@ public class VkPostCollector : IPostCollector
                 return;
             }
 
-            _logger.LogInformation($"Начало обработки поста {vkPost.Id} из паблика {domain}");
-
-            var post = new Post();
-
-            post.Body = vkPost.Text;
-            post.PlatformOwner = domain;
-            post.PlatformId = vkPost.Id.ToString();
-            post.CollectedAt = DateTime.UtcNow;
-            post.Attachments = new List<PostAttachment>();
-
-            _logger.LogInformation($"Начало обработки вложений поста {vkPost.Id} из паблика {domain}, количество: {post.Attachments.Count}");
+            _logger.LogInformation($"Начало обработки вложений поста {vkPost.Id} из паблика {domain}, количество: {vkPost.Attachments.Count}");
 
             foreach (var vkPostAttachment in vkPost.Attachments)
             {

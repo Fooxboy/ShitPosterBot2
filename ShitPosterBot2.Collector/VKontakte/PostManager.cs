@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ShitPosterBot2.Collector.VKontakte.Models;
@@ -17,8 +16,10 @@ namespace ShitPosterBot2.Collector.VKontakte
         public PostManager(string token, ILogger<VkPostCollector> logger)
         {
             _logger =  logger;
-
+            
             _vkApi = new VkApi();
+            _vkApi.RequestsPerSecond = 9999;
+            
             _vkApi.Authorize(new VkNet.Model.ApiAuthParams() { AccessToken = token });
         }
     

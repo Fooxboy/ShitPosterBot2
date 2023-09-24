@@ -7,7 +7,7 @@ public interface IPostCollector
     public string Name { get; }
     public event Action<Post> NewPostParsed;    
     
-    public event Action<Exception> PostCollectorCrashed;
+    public event Action<Exception, IPostCollector> PostCollectorCrashed;
 
     public Task RunCollectorAsync(ICollectorSettings settings);
 
