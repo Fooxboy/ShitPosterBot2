@@ -14,9 +14,11 @@ public class PostsRepository : IPostRepository
         _botContext = botContext;
     }
 
-    public Task<Post?> FindPostById(long id)
+    public async Task<Post?> FindPostById(long id)
     {
-        return null;
+        var post = await _botContext.Posts.Where(post => post.Id == id).Include(post => post.Attachments).FirstOrDefaultAsync();
+
+        return post;
     }
 
     public async Task<Post?> AddPostAsync(Post post)
@@ -57,5 +59,21 @@ public class PostsRepository : IPostRepository
         post.PublishAt = time;
 
         await _botContext.SaveChangesAsync();
+    }
+
+    public async Task<List<Post>> GetRandomPosts(int count)
+    {
+        var countPosts = await _botContext.Posts.CountAsync();
+
+        var randomIds = new List<long>();
+
+        for (int i = 0; i < count; i++)
+        {
+            randomIds.Add(Random.Shared.Next(0, countPosts));
+        }
+
+        var posts = await _botContext.Posts.Where(post => randomIds.Contains(post.Id)).Include(post=> post.Attachments).ToListAsync();
+
+        return posts;
     }
 }

@@ -9,4 +9,6 @@ public interface IPostRepository
     public Task<Post?> AddPostAsync(Post post);
 
     public Task UpdateSentTime(Post dbPost, DateTime time);
+
+    public Task<List<Post>> GetRandomPosts(int count);
 }

@@ -6,6 +6,8 @@ using NLog.Extensions.Logging;
 using ShitPosterBot2;
 using ShitPosterBot2.Database;
 using ShitPosterBot2.ExternValidators;
+using ShitPosterBot2.MessageHandler;
+using ShitPosterBot2.MessageHandler.UserHandlers;
 using ShitPosterBot2.Repositories;
 using ShitPosterBot2.Services;
 using ShitPosterBot2.Shared;
@@ -29,7 +31,14 @@ builder.Services.AddDbContext<BotContext>(options =>
 
 builder.Services.AddSingleton<TopSecretsRepository>();
 builder.Services.AddSingleton<DomainsRepository>();
-builder.Services.AddSingleton<PostsRepository>();
+builder.Services.AddSingleton<IPostRepository, PostsRepository>();
+
+builder.Services.AddTransient<IUserHandler, UserInlineQueryHandler>();
+builder.Services.AddTransient<IUserHandler, UserMessageHandler>();
+
+builder.Services.AddTransient<CommandsManager>();
+
+builder.Services.AddTransient<IMessageHandler, TelegramMessageHandler>();
 
 builder.Services.AddSingleton<IStatisticsService, StatisticsService>();
 builder.Services.AddSingleton<IExternPostValidator, VkExternValidator>();

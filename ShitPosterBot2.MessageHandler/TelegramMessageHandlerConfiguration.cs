@@ -1,6 +1,6 @@
 ﻿namespace ShitPosterBot2.MessageHandler;
 
-public class TelegramMessageHandlerConfiguration
+public class TelegramMessageHandlerConfiguration : IMessageHandlerConfiguration
 {
     public string TelegramToken { get; set; }
     

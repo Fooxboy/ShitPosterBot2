@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using ShitPosterBot2.Shared;
-using ShitPosterBot2.Shared.Models;
+using ShitPosterBot2.MessageHandler.UserHandlers;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -11,23 +10,18 @@ public class TelegramMessageHandler : IMessageHandler
 {
     private TelegramBotClient _botClient;
     private TelegramMessageHandlerConfiguration _configuration;
-    private readonly CommandsManager _commandsManager;
-    private readonly IPostRepository _postRepository;
+    private readonly IEnumerable<IUserHandler> _userHandlers;
 
     private readonly ILogger<TelegramMessageHandler> _logger;
 
-    public TelegramMessageHandler(ILogger<TelegramMessageHandler> logger, CommandsManager commandsManager,
-        IPostRepository postRepository)
+    public TelegramMessageHandler(ILogger<TelegramMessageHandler> logger, IEnumerable<IUserHandler> userHandlers)
     {
         _logger = logger;
-        _commandsManager = commandsManager;
-        _postRepository = postRepository;
+        _userHandlers = userHandlers;
     }
-    
     
     public async Task RunMesageHandler(IMessageHandlerConfiguration configuration)
     {
-
         if (configuration is not TelegramMessageHandlerConfiguration tgConfig)
         {
             _logger.LogError("Неверные параметры переданы были. Остановка...");
@@ -48,72 +42,43 @@ public class TelegramMessageHandler : IMessageHandler
         var cancellationToken = cts.Token;
 
         _botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions, cancellationToken);
-
     }
 
     private async Task HandleUpdateAsync(ITelegramBotClient client, Update update, CancellationToken token)
     {
-        if (update.Message is Message message)
+        if (update.Message is not null)
         {
-            _logger.LogInformation("Пришло новое сообщение");
-
-            await ProcessNewMessage(client, message);
+            await InvokeHandler(update, HandlerType.Message);
         }
 
-        if(update.Type is Telegram.Bot.Types.Enums.UpdateType.InlineQuery)
+        if(update.Type is Telegram.Bot.Types.Enums.UpdateType.InlineQuery && update.InlineQuery != null)
         {
-            _logger.LogInformation("Пришёл инлайн запрос");
+            await InvokeHandler(update, HandlerType.InlineQuery);
         }
     }
 
-    private async Task ProcessNewMessage(ITelegramBotClient client, Message msg)
+    private async Task InvokeHandler(Update update, HandlerType handlerType)
     {
-        var text = msg.Text;
+        var handler = _userHandlers.FirstOrDefault(x => x.HandlerType == handlerType);
 
-        if (text.StartsWith("/"))
+        if (handler is null)
         {
-            text = text.Replace("/", string.Empty);
-            
-            await _commandsManager.ProccessCommand(text, msg, _botClient);
+            _logger.LogError($"Не найден хендлер {handlerType}");
 
             return;
         }
-        
-        _logger.LogInformation($"Обработка сообщения с текстом {text}");
-
-        if (long.TryParse(text, out var postId))
-        {
-            var post = await _postRepository.FindPostById(postId);
-
-            if (post is null)
-            {
-                await client.SendTextMessageAsync(msg.Chat.Id, $"Пост с ID = {postId} не найден");
-
-                return;
-            }
-
-            var senderService = new TelegramSenderService(client);
-
             
-            _logger.LogInformation($"Отправка поста {post.Id} пользователю");
-            Thread.Sleep(_configuration.SendMessageUserTimeout);
-            await senderService.SendPostAsync(post, $"Вот твой пост с ID {post.Id}", msg.Chat.Id.ToString());
-
-            _logger.LogInformation($"Отправка документов с поста {post.Id} пользователю");
-            foreach (var postAttachment in post.Attachments)
-            {
-                if (postAttachment.AttachmentType == AttachmentType.Video) continue;
-
-                Thread.Sleep(_configuration.SendMessageUserTimeout);
-                await client.SendDocumentAsync(msg.Chat.Id, postAttachment.Url);
-            }
-
-            return;
-
+        try
+        {
+            await handler.Handle(update, _botClient, _configuration);
         }
-        
+        catch (Exception ex)
+        {
+            _logger.LogError($"Ошибка при выполнении хендлера {handlerType}: {ex.Message}");
+            _logger.LogError(ex, ex.Message);
+        }
     }
-    
+   
     private Task HandleErrorAsync(ITelegramBotClient arg1, Exception ex, CancellationToken arg3)
     {
         _logger.LogError(ex, ex.Message);

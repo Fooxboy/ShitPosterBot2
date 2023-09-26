@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ShitPosterBot2.Collector;
 using ShitPosterBot2.Database;
+using ShitPosterBot2.MessageHandler;
 using ShitPosterBot2.Repositories;
 using ShitPosterBot2.Sender;
 using ShitPosterBot2.Shared;
@@ -31,15 +32,18 @@ public class BotHost : IHostedService
 
     private readonly IExternPostValidator _externPostValidator;
 
-    private readonly PostsRepository _postsRepository;
+    private readonly IPostRepository _postsRepository;
 
     private readonly ISplashService _splashService;
+
+    private readonly IMessageHandler _messageHandler;
 
     public BotHost(ILogger<BotHost> collectorsLogger, TopSecretsRepository topSecretsRepository, 
         IConfiguration configuration, 
         ILogger<VkPostCollector> collectorLogger, 
         IStatisticsService statisticsService, DomainsRepository domainsRepository, IExternPostValidator externPostValidator,
-        PostsRepository postsRepository, ILogger<TelegramPostSender> senderLogger, ISplashService splashService)
+        IPostRepository postsRepository, ILogger<TelegramPostSender> senderLogger, ISplashService splashService, 
+        IMessageHandler messageHandler)
     {
         _collectors = new List<IPostCollector>();
         _senders = new List<IPostSender>();
@@ -53,6 +57,7 @@ public class BotHost : IHostedService
         _postsRepository = postsRepository;
         _senderLogger = senderLogger;
         _splashService = splashService;
+        _messageHandler = messageHandler;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -111,6 +116,20 @@ public class BotHost : IHostedService
             _hostLogger.LogError("Ошибка при запуске  сендеров");
             _hostLogger.LogError(ex, ex.Message);
         }
+        
+        _hostLogger.LogInformation("Запуск месседж хендлера");
+
+        var handlerConfiguration = new TelegramMessageHandlerConfiguration()
+        {
+            TelegramToken = _topSecretsRepository.GetSecret(TopSecretsKeys.TokenTelegramBot)
+        };
+
+
+        new Thread(async () =>
+        {
+            await _messageHandler.RunMesageHandler(handlerConfiguration);
+
+        }).Start();
     }
 
     private void PostSenderOnSenderCrashed(Exception ex, IPostSender sender)
@@ -266,7 +285,6 @@ public class BotHost : IHostedService
                 _hostLogger.LogInformation($"Запущен сендер {postSender.Name}");
             }).Start();
         }
-
     }
 
     private IPostCollector GetVkPostCollector(int instance)
