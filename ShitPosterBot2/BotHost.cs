@@ -14,6 +14,7 @@ namespace ShitPosterBot2;
 public class BotHost : IHostedService
 {
     private readonly List<IPostCollector> _collectors;
+    
     private readonly List<IPostSender> _senders;
 
     private readonly ILogger<BotHost> _hostLogger;
