@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ShitPosterBot2.Backupper;
+using ShitPosterBot2.Backupper.Database;
 using ShitPosterBot2.Collector;
 using ShitPosterBot2.Database;
 using ShitPosterBot2.MessageHandler;
@@ -39,12 +41,14 @@ public class BotHost : IHostedService
 
     private readonly IMessageHandler _messageHandler;
 
+    private readonly IEnumerable<IDataBackupper> _dataBackuppers;
+
     public BotHost(ILogger<BotHost> collectorsLogger, TopSecretsRepository topSecretsRepository, 
         IConfiguration configuration, 
         ILogger<VkPostCollector> collectorLogger, 
         IStatisticsService statisticsService, DomainsRepository domainsRepository, IExternPostValidator externPostValidator,
         IPostRepository postsRepository, ILogger<TelegramPostSender> senderLogger, ISplashService splashService, 
-        IMessageHandler messageHandler)
+        IMessageHandler messageHandler, IEnumerable<IDataBackupper> dataBackuppers)
     {
         _collectors = new List<IPostCollector>();
         _senders = new List<IPostSender>();
@@ -59,6 +63,7 @@ public class BotHost : IHostedService
         _senderLogger = senderLogger;
         _splashService = splashService;
         _messageHandler = messageHandler;
+        _dataBackuppers = dataBackuppers;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -131,6 +136,18 @@ public class BotHost : IHostedService
             await _messageHandler.RunMesageHandler(handlerConfiguration);
 
         }).Start();
+
+
+        foreach (var dataBackupper in _dataBackuppers)
+        {
+            var config = GetDataBackuperConfig(dataBackupper);
+
+            new Thread(async () =>
+            {
+                //await dataBackupper.Run(config);
+                
+            }).Start();
+        }
     }
 
     private void PostSenderOnSenderCrashed(Exception ex, IPostSender sender)
@@ -304,5 +321,24 @@ public class BotHost : IHostedService
         var tgSender = new TelegramPostSender(_senderLogger, _splashService);
 
         return tgSender;
+    }
+
+
+    private IDataBackupperConfiguration GetDataBackuperConfig(IDataBackupper backupper)
+    {
+        if (backupper is DatabaseBackupper)
+        {
+            var telegramToken = _topSecretsRepository.GetSecret(TopSecretsKeys.TokenTelegramBot);
+            return new DatabaseBackupperConfiguration()
+            {
+                DatabaseDirectory = Path.GetDirectoryName(_configuration["DatabaseConnectionString"]),
+                TargetId = _configuration["TelegramBackupperTargetId"],
+                TelegramBotToken = telegramToken,
+                Timeout = int.Parse(_configuration["SendDatabaseTimeout"])
+
+            };
+        }
+
+        return null;
     }
 }

@@ -34,6 +34,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ShitPosterBot2.Backupper\ShitPosterBot2.Backupper.csproj" />
       <ProjectReference Include="..\ShitPosterBot2.Collector\ShitPosterBot2.Collector.csproj" />
       <ProjectReference Include="..\ShitPosterBot2.MessageHandler\ShitPosterBot2.MessageHandler.csproj" />
       <ProjectReference Include="..\ShitPosterBot2.Sender\ShitPosterBot2.Sender.csproj" />

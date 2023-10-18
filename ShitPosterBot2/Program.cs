@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using ShitPosterBot2;
+using ShitPosterBot2.Backupper;
+using ShitPosterBot2.Backupper.Database;
 using ShitPosterBot2.Database;
 using ShitPosterBot2.ExternValidators;
 using ShitPosterBot2.MessageHandler;
@@ -39,6 +41,8 @@ builder.Services.AddTransient<IUserHandler, UserMessageHandler>();
 builder.Services.AddTransient<CommandsManager>();
 
 builder.Services.AddTransient<IMessageHandler, TelegramMessageHandler>();
+
+builder.Services.AddSingleton<IDataBackupper, DatabaseBackupper>();
 
 builder.Services.AddSingleton<IStatisticsService, StatisticsService>();
 builder.Services.AddSingleton<IExternPostValidator, VkExternValidator>();
