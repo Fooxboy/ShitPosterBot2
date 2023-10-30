@@ -4,6 +4,7 @@ using ShitPosterBot2.Collector.VKontakte.Hadlers;
 using ShitPosterBot2.Collector.VKontakte.Validators;
 using ShitPosterBot2.Shared;
 using ShitPosterBot2.Shared.Models;
+using VkNet.Exception;
 using VkNet.Model;
 using Post = ShitPosterBot2.Shared.Models.Post;
 
@@ -64,6 +65,9 @@ public class VkPostCollector : IPostCollector
         {
             _vkPostManager = new PostManager(_settings.Token, _logger);
 
+            _logger.LogInformation("Проверяем, что аккаунт валидный");
+            await _vkPostManager.CheckValidAccount();
+
             _attachmentValidators = new List<IAttachmentValidator>()
             {
                 //вот они слева направа
@@ -81,6 +85,7 @@ public class VkPostCollector : IPostCollector
         catch (Exception ex)
         {
             PostCollectorCrashed?.Invoke(ex, this);
+            
         }
     }
 
@@ -108,10 +113,15 @@ public class VkPostCollector : IPostCollector
                     try
                     {
                         await ProcessDomain(domain);
-                        
+
                         removedDomains.Add(domain);
 
-                    } catch (Exception ex)
+                    }
+                    catch (UserAuthorizationFailException exception)
+                    {
+                        return;
+                    } 
+                    catch (Exception ex)
                     {
                         _logger.LogInformation($"Произошла ошибка при получении постов с паблика {domain}. Оставляем паблик в очереди");
                         _logger.LogError(ex, ex.Message);
@@ -140,15 +150,29 @@ public class VkPostCollector : IPostCollector
         _logger.LogInformation($"Ждем таймаут перед получением постов {_settings.Timeout}");
         
         Thread.Sleep(_settings.Timeout);
-        
-        var vkPosts = await _vkPostManager.GetPostsAsync(domain, _settings.CountPosts);
 
-        _logger.LogInformation($"Получено {vkPosts.Count} постов с паблика {domain}");
-
-        foreach (var vkPost in vkPosts)
+        try
         {
-            await ProcessPost(vkPost, domain);
+            var vkPosts = await _vkPostManager.GetPostsAsync(domain, _settings.CountPosts);
+            
+            _logger.LogInformation($"Получено {vkPosts.Count} постов с паблика {domain}");
+
+            foreach (var vkPost in vkPosts)
+            {
+                await ProcessPost(vkPost, domain);
+            }
+
         }
+        catch (UserAuthorizationFailException exception)
+        {
+            PostCollectorCrashed?.Invoke(new Exception("Страница заморожена. Остановка коллектора..."), this);
+            
+            this.StopCollector();
+
+            throw;
+        }
+
+       
     }
 
     private async Task ProcessPost(VkNet.Model.Post vkPost, string domain)

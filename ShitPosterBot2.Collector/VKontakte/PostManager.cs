@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ShitPosterBot2.Collector.VKontakte.Models;
 using VkNet;
+using VkNet.Exception;
 using VkNet.Model;
 using VkNet.Utils;
 
@@ -21,6 +22,20 @@ namespace ShitPosterBot2.Collector.VKontakte
             _vkApi.RequestsPerSecond = 9999;
             
             _vkApi.Authorize(new VkNet.Model.ApiAuthParams() { AccessToken = token });
+        }
+
+        public async Task<bool> CheckValidAccount()
+        {
+            try
+            {
+                var test = await _vkApi.Users.GetAsync(new List<long>());
+
+                return true;
+            }
+            catch (UserAuthorizationFailException ex)
+            {
+                return false;
+            }
         }
     
         public async Task<ReadOnlyCollection<Post>> GetPostsAsync(string domain, ulong count = 10)
