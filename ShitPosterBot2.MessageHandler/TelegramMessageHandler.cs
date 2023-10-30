@@ -44,6 +44,11 @@ public class TelegramMessageHandler : IMessageHandler
         _botClient.StartReceiving(HandleUpdateAsync, HandleErrorAsync, receiverOptions, cancellationToken);
     }
 
+    public async Task SendMessage(string message, string target)
+    {
+        await _botClient.SendTextMessageAsync(target, message);
+    }
+
     private async Task HandleUpdateAsync(ITelegramBotClient client, Update update, CancellationToken token)
     {
         if (update.Message is not null)

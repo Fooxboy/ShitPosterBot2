@@ -198,6 +198,8 @@ public class BotHost : IHostedService
     {
         _hostLogger.LogInformation($"Крашнулся коллектор '{collector.Name}'. Причина: {ex.Message}");
         _hostLogger.LogError(ex, ex.Message);
+
+        _messageHandler.SendMessage($"Крашнулся коллектор '{collector.Name}'. Причина: {ex.Message}", "495716470");
     }
 
     private async Task PostCollectorOnNewPostParsed(Post post)
