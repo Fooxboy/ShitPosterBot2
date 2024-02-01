@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using File = System.IO.File;
 
 namespace ShitPosterBot2.Backupper;
 
@@ -19,14 +20,18 @@ public class DatabaseSender
                 
         var backupFiles = Directory.GetFiles(pathToSave);
 
-        var tgFiles = backupFiles.Select(backup =>
+        foreach (var backupFile in backupFiles)
         {
-            using var stream = System.IO.File.OpenRead(backup);
-            return new InputMediaDocument(new InputMedia(stream, Guid.NewGuid().ToString()));
-        });
-                
-        await telegramClient.SendMediaGroupAsync(targetId, tgFiles);
+            using (var streamFile = System.IO.File.OpenRead(backupFile))
+            {
+                var media = new InputMedia(streamFile, Path.GetFileName(backupFile));
 
+                await telegramClient.SendDocumentAsync(targetId, media);
+            }
+            
+            File.Delete(backupFile);
+        }
+                
         return pathToArchives;
     }
 }
