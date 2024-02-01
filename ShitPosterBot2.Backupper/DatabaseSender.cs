@@ -9,11 +9,15 @@ public class DatabaseSender
     
     public async Task<string> SendDatabase(string dbDirectory, ITelegramBotClient telegramClient, string targetId)
     {
+        var pathToSave = Path.Combine(Environment.CurrentDirectory, "backups");
+
+        Directory.CreateDirectory(pathToSave);
+
         var zipper = new Zipper();
 
-        var pathToArchives = await zipper.ZipFilesInDirectory(dbDirectory);
+        var pathToArchives = await zipper.ZipFilesInDirectory(dbDirectory, pathToSave);
                 
-        var backupFiles = Directory.GetFiles(Path.Combine(dbDirectory, "backups"));
+        var backupFiles = Directory.GetFiles(pathToSave);
 
         var tgFiles = backupFiles.Select(backup =>
         {

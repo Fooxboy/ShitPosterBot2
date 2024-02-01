@@ -4,7 +4,7 @@ using Ionic.Zip;
 
 public class Zipper
 {
-    public async Task<string> ZipFilesInDirectory(string pathToDirectory)
+    public async Task<string> ZipFilesInDirectory(string pathToDirectory, string saveDirectory)
     {
         var zipArchiveName = $"backup-{DateTime.UtcNow:yy-MM-dd}-{Random.Shared.Next(1, 20)}.zip";
         
@@ -12,7 +12,7 @@ public class Zipper
         {
             zip.AddDirectory(pathToDirectory);
             zip.MaxOutputSegmentSize = 40 * 1024 * 1024; // 100k segments
-            zip.Save(Path.Combine(pathToDirectory, "backups", zipArchiveName));
+            zip.Save(saveDirectory);
         }
 
         return zipArchiveName;
