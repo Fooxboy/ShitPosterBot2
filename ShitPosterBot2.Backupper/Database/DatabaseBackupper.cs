@@ -35,26 +35,33 @@ public class DatabaseBackupper : IDataBackupper
 
         while (_isRun)
         {
-            _logger.LogInformation("Отправка базы данных в телеграм...");
 
             try
             {
-                var files = Directory.GetFiles(_configuration.DatabaseDirectory);
-
-                if (!files.Any())
-                {
-                    throw new InvalidDataException("Не найдены файлы в папке где должно лежать бд");
-                }
+                _logger.LogInformation("Начало работы бд бэкаппера");
                 
-                var tgFiles = files.Select(localFile =>
+                var zipper = new Zipper();
+
+                _logger.LogInformation("запаковка файлов");
+
+                var pathToArchives = await zipper.ZipFilesInDirectory(_configuration.DatabaseDirectory);
+                
+                _logger.LogInformation("запаковка завершена");
+
+                var backupFiles = Directory.GetFiles(Path.Combine(_configuration.DatabaseDirectory, "backups"));
+
+                var tgFiles = backupFiles.Select(backup =>
                 {
-                    using var stream = System.IO.File.OpenRead(localFile);
+                    using var stream = System.IO.File.OpenRead(backup);
                     return new InputMediaDocument(new InputMedia(stream, Guid.NewGuid().ToString()));
                 });
+                
+                _logger.LogInformation("Отправка базы данных в телеграм...");
 
                 await _telegramClient.SendMediaGroupAsync(_configuration.TargetId, tgFiles);
 
                 _logger.LogInformation("База данных успешно отправлена!");
+                
             }
             catch (Exception ex)
             {

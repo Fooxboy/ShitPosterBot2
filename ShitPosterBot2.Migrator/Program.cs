@@ -2,12 +2,19 @@
 
 using System.Collections.Concurrent;
 using ShitPosterBot.Database;
+using ShitPosterBot2.Backupper.Database;
 using ShitPosterBot2.Shared.Models;
 using ShitPosterBotConsole.Database;
 
 Console.WriteLine("Hello, World!");
 
 
+var backupper = new DatabaseBackupper(null);
+
+var databaseBackupperConfiguration = new DatabaseBackupperConfiguration() {DatabaseDirectory = "C:\\logs", Timeout = 1000000000, TargetId = "sdf", TelegramBotToken = "sd"};
+
+
+await backupper.Run(databaseBackupperConfiguration);
 
 using (var oldConnection = new BotContext())
 {

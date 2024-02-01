@@ -144,7 +144,7 @@ public class BotHost : IHostedService
 
             new Thread(async () =>
             {
-                //await dataBackupper.Run(config);
+                await dataBackupper.Run(config);
                 
             }).Start();
         }
