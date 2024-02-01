@@ -12,7 +12,7 @@ public class Zipper
         {
             zip.AddDirectory(pathToDirectory);
             zip.MaxOutputSegmentSize = 40 * 1024 * 1024; // 100k segments
-            zip.Save(saveDirectory);
+            zip.Save(Path.Combine(saveDirectory, zipArchiveName));
         }
 
         return zipArchiveName;
