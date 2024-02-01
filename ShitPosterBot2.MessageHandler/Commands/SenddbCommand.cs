@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using ShitPosterBot2.Backupper;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 
@@ -14,20 +15,10 @@ public class SenddbCommand : IUserCommand
             await botClient.SendTextMessageAsync(msg.From.Id, "Не не не, тебе к этому нельзя иметь доступ"); 
             return;
         }
-        
-        var files = Directory.GetFiles("DB");
 
-        await botClient.SendTextMessageAsync(msg.From.Id, "Отправка базы данных");
-            
-        foreach (string file in files)
-        {
-            Thread.Sleep(5000);
-            var a = file.Split('/');
-            
-            await using Stream stream = System.IO.File.OpenRead(file);
-            await botClient.SendDocumentAsync(msg.From.Id, new InputOnlineFile(stream, a[^1]));
-        }
+        var sender = new DatabaseSender();
 
-        await botClient.SendTextMessageAsync(msg.From.Id, "Отправка базы даных успешно обработана");
+        var dbDirectory = Path.Combine(Environment.CurrentDirectory, "DB");
+        await sender.SendDatabase(dbDirectory, botClient, msg.Chat.Id.ToString());
     }
 }

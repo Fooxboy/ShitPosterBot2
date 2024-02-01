@@ -13,6 +13,7 @@
 
 
     <ItemGroup>
+      <ProjectReference Include="..\ShitPosterBot2.Backupper\ShitPosterBot2.Backupper.csproj" />
       <ProjectReference Include="..\ShitPosterBot2.Shared\ShitPosterBot2.Shared.csproj" />
     </ItemGroup>
 

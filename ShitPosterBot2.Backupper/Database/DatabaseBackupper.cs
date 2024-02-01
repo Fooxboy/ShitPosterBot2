@@ -14,6 +14,7 @@ public class DatabaseBackupper : IDataBackupper
     public DatabaseBackupper(ILogger<DatabaseBackupper> logger)
     {
         _logger = logger;
+        
     }
 
     public async Task Run(IDataBackupperConfiguration configuration)
@@ -33,35 +34,17 @@ public class DatabaseBackupper : IDataBackupper
 
         _isRun = true;
 
+
+        var databaseSender = new DatabaseSender();
+        
         while (_isRun)
         {
 
             try
             {
                 _logger.LogInformation("Начало работы бд бэкаппера");
-                
-                var zipper = new Zipper();
 
-                _logger.LogInformation("запаковка файлов");
-
-                var pathToArchives = await zipper.ZipFilesInDirectory(_configuration.DatabaseDirectory);
-                
-                _logger.LogInformation("запаковка завершена");
-
-                var backupFiles = Directory.GetFiles(Path.Combine(_configuration.DatabaseDirectory, "backups"));
-
-                var tgFiles = backupFiles.Select(backup =>
-                {
-                    using var stream = System.IO.File.OpenRead(backup);
-                    return new InputMediaDocument(new InputMedia(stream, Guid.NewGuid().ToString()));
-                });
-                
-                _logger.LogInformation("Отправка базы данных в телеграм...");
-
-                await _telegramClient.SendMediaGroupAsync(_configuration.TargetId, tgFiles);
-
-                _logger.LogInformation("База данных успешно отправлена!");
-                
+                await databaseSender.SendDatabase(_configuration.DatabaseDirectory, _telegramClient, _configuration.TargetId);
             }
             catch (Exception ex)
             {

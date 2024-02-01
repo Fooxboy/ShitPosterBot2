@@ -333,7 +333,7 @@ public class BotHost : IHostedService
             var telegramToken = _topSecretsRepository.GetSecret(TopSecretsKeys.TokenTelegramBot);
             return new DatabaseBackupperConfiguration()
             {
-                DatabaseDirectory = Path.GetDirectoryName(_configuration["DatabaseConnectionString"]),
+                DatabaseDirectory = Path.Combine(Environment.CurrentDirectory, "DB"),
                 TargetId = _configuration["TelegramBackupperTargetId"],
                 TelegramBotToken = telegramToken,
                 Timeout = int.Parse(_configuration["SendDatabaseTimeout"])
