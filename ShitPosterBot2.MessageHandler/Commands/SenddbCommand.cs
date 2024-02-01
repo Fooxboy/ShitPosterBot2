@@ -18,7 +18,7 @@ public class SenddbCommand : IUserCommand
 
         var sender = new DatabaseSender();
 
-        var dbDirectory = Path.Combine(Environment.CurrentDirectory, "backups");
+        var dbDirectory = Path.Combine(Environment.CurrentDirectory, "DB");
         await sender.SendDatabase(dbDirectory, botClient, msg.Chat.Id.ToString());
     }
 }
