@@ -34,12 +34,10 @@ public class DatabaseBackupper : IDataBackupper
 
         _isRun = true;
 
-
         var databaseSender = new DatabaseSender();
         
         while (_isRun)
         {
-
             try
             {
                 _logger.LogInformation("Начало работы бд бэкаппера");
