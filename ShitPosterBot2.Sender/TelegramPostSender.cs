@@ -67,7 +67,7 @@ public class TelegramPostSender : IPostSender
                 _logger.LogInformation($"Начало отправки поста {post.PlatformOwner} - {post.PlatformId} для отправки в {post.DomainInfo.Target}");
                 var vkName = $"[паблика](https://vk.com/{post.DomainInfo.Name}?w=wall{post.PlatformId}) {post.DomainInfo.Emoji}";
                 
-                var text = string.Join(" ", await _splashService.GetRandomText(), vkName, post.DomainInfo.ShowOriginalText ? Environment.NewLine + post.Body : string.Empty,  Environment.NewLine, Environment.NewLine, $"ID: `{post.Id}`");
+                var text = string.Join(" ", await _splashService.GetRandomText(), vkName, post.DomainInfo.ShowOriginalText ? Environment.NewLine + post.Body : string.Empty /*,  Environment.NewLine, Environment.NewLine, $"ID: `{post.Id}`" */); //убрать закоментированнойть для вывода id поста  
 
                 try
                 {
